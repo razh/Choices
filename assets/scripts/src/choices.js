@@ -2316,7 +2316,6 @@ class Choices {
     if (this.placeholder) {
       if (this.passedElement.type !== 'select-one' && !this.config.searchPlaceholderValue) {
         input.placeholder = this.placeholder;
-        input.style.width = getWidthOfInput(input);
       } else {
         const placeholderItem = this._getTemplate('placeholder', this.placeholder);
         this.itemList.appendChild(placeholderItem);
@@ -2346,6 +2345,14 @@ class Choices {
       containerInner.appendChild(input);
     } else if (this.canSearch) {
       dropdown.insertBefore(input, dropdown.firstChild);
+    }
+
+    if (
+      this.placeholder &&
+      this.passedElement.type !== 'select-one' &&
+      !this.config.searchPlaceholderValue
+    ) {
+      input.style.width = getWidthOfInput(input);
     }
 
     if (this.isSelectElement) {
