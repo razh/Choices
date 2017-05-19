@@ -15,7 +15,7 @@
   <meta name="theme-color" content="#ffffff">
 
   <!-- Ignore these -->
-  <link rel="stylesheet" href="assets/styles/css/base.min.css?version=2.7.8">
+  <link rel="stylesheet" href="assets/styles/css/base.min.css?version=2.8.2">
   <!-- End ignore these -->
 
   <!-- Optional includes -->
@@ -23,8 +23,8 @@
   <!-- End optional includes -->
 
   <!-- Choices includes -->
-  <link rel="stylesheet" href="assets/styles/css/choices.min.css?version=2.7.8">
-  <script src="assets/scripts/dist/choices.min.js?version=2.7.8"></script>
+  <link rel="stylesheet" href="assets/styles/css/choices.min.css?version=2.8.2">
+  <script src="assets/scripts/dist/choices.min.js?version=2.8.2"></script>
   <!-- End Choices includes -->
 
   <!--[if lt IE 9]>
@@ -140,7 +140,6 @@
       <label for="label-event">Use label in event (add/remove)</label>
       <p id="message"></p>
       <select id="choices-multiple-labels" multiple></select>
-
       <hr>
 
       <h2>Single select input</h2>
@@ -321,7 +320,8 @@
       var multipleDefault = new Choices(document.getElementById('choices-multiple-groups'));
 
       var multipleFetch = new Choices('#choices-multiple-remote-fetch', {
-        searchPlaceholderValue: 'Pick an Strokes record',
+        placeholder: true,
+        placeholderValue: 'Pick a Strokes record',
         maxItemCount: 5,
       }).ajax(function(callback) {
         fetch('https://api.discogs.com/artists/55980/releases?token=QBRmstCkwXEvCjTclCpumbtNwvVkEzGAdELXyRyW')
@@ -341,7 +341,6 @@
 
       /* Use label on event */
       var choicesSelect = new Choices('#choices-multiple-labels', {
-        search: false,
         removeItemButton: true,
         choices: [
           {value: 'One', label: 'Label One'},
@@ -363,13 +362,19 @@
       });
 
       var singleFetch = new Choices('#choices-single-remote-fetch', {
-        searchPlaceholderValue: 'Pick an Arctic Monkeys record',
+        choices: [
+          {
+            value: 'Pick an Arctic Monkeys record',
+            placeholder: true,
+            selected: true,
+            disabled: true
+          },
+        ],
       }).ajax(function(callback) {
         fetch('https://api.discogs.com/artists/391170/releases?token=QBRmstCkwXEvCjTclCpumbtNwvVkEzGAdELXyRyW')
         .then(function(response) {
           response.json().then(function(data) {
             callback(data.releases, 'title', 'title');
-            singleFetch.setValueByChoice('Fake Tales Of San Francisco');
           });
         })
         .catch(function(error) {
@@ -405,7 +410,7 @@
       });
 
       var singleNoSearch = new Choices('#choices-single-no-search', {
-        search: false,
+        searchEnabled: false,
         removeItemButton: true,
         choices: [
           {value: 'One', label: 'Label One'},
@@ -415,7 +420,7 @@
       }).setChoices([
         {value: 'Four', label: 'Label Four', disabled: true},
         {value: 'Five', label: 'Label Five'},
-        {value: 'Six', label: 'Label Six', selected: true},
+        {value: 'Six', label: 'Label Six'},
       ], 'value', 'label', false);
 
       var singlePresetOpts = new Choices('#choices-single-preset-options').setChoices([{
