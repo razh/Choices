@@ -1,4 +1,4 @@
-/*! choices.js v2.8.8 | (c) 2017 Josh Johnson | https://github.com/jshjohnson/Choices#readme */ 
+/*! choices.js v2.8.9 | (c) 2017 Josh Johnson | https://github.com/jshjohnson/Choices#readme */ 
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -249,10 +249,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.baseId = (0, _utils.generateId)(this.passedElement, 'choices-');
 
 	    // Bind methods
-	    this.init = this.init.bind(this);
 	    this.render = this.render.bind(this);
-	    this.destroy = this.destroy.bind(this);
-	    this.disable = this.disable.bind(this);
 
 	    // Bind event handlers
 	    this._onFocus = this._onFocus.bind(this);
@@ -494,8 +491,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (this.isTextElement) {
 	        // Simplify store data to just values
 	        var itemsFiltered = this.store.getItemsReducedToValues(items);
-	        // Assign hidden input array of values
-	        this.passedElement.setAttribute('value', itemsFiltered.join(this.config.delimiter));
+	        var itemsFilteredString = itemsFiltered.join(this.config.delimiter);
+	        // Update the value of the hidden input
+	        this.passedElement.setAttribute('value', itemsFilteredString);
+	        this.passedElement.value = itemsFilteredString;
 	      } else {
 	        var selectedOptionsFragment = document.createDocumentFragment();
 
@@ -972,13 +971,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            // If we are dealing with a select input, we need to create an option first
 	            // that is then selected. For text inputs we can just add items normally.
 	            if (!_this10.isTextElement) {
-	              _this10._addChoice(item.value, item.label, true, false, -1, item.customProperties);
+	              _this10._addChoice(item.value, item.label, true, false, -1, item.customProperties, null);
 	            } else {
-	              _this10._addItem(item.value, item.label, item.id, undefined, item.customProperties);
+	              _this10._addItem(item.value, item.label, item.id, undefined, item.customProperties, null);
 	            }
 	          } else if (itemType === 'String') {
 	            if (!_this10.isTextElement) {
-	              _this10._addChoice(item, item, true, false, -1);
+	              _this10._addChoice(item, item, true, false, -1, null);
 	            } else {
 	              _this10._addItem(item);
 	            }
@@ -1022,7 +1021,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	          if (foundChoice) {
 	            if (!foundChoice.selected) {
-	              _this11._addItem(foundChoice.value, foundChoice.label, foundChoice.id, foundChoice.groupId, foundChoice.customProperties);
+	              _this11._addItem(foundChoice.value, foundChoice.label, foundChoice.id, foundChoice.groupId, foundChoice.customProperties, foundChoice.keyCode);
 	            } else if (!_this11.config.silent) {
 	              console.warn('Attempting to select choice already selected');
 	            }
@@ -1067,7 +1066,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	              if (result.choices) {
 	                _this12._addGroup(result, result.id || null, value, label);
 	              } else {
-	                _this12._addChoice(result[value], result[label], result.selected, result.disabled, undefined, result['customProperties']);
+	                _this12._addChoice(result[value], result[label], result.selected, result.disabled, undefined, result['customProperties'], null);
 	              }
 	            });
 	          }
@@ -1307,7 +1306,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // If we are clicking on an option
 	      var id = element.getAttribute('data-id');
 	      var choice = this.store.getChoiceById(id);
+	      var passedKeyCode = activeItems[0].keyCode !== null ? activeItems[0].keyCode : null;
 	      var hasActiveDropdown = this.dropdown.classList.contains(this.config.classNames.activeState);
+
+	      // Update choice keyCode
+	      choice.keyCode = passedKeyCode;
 
 	      (0, _utils.triggerEvent)(this.passedElement, 'choice', {
 	        choice: choice
@@ -1317,7 +1320,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var canAddItem = this._canAddItem(activeItems, choice.value);
 
 	        if (canAddItem.response) {
-	          this._addItem(choice.value, choice.label, choice.id, choice.groupId, choice.customProperties);
+	          this._addItem(choice.value, choice.label, choice.id, choice.groupId, choice.customProperties, choice.keyCode);
 	          this._triggerChange(choice.value);
 	        }
 	      }
@@ -1482,7 +1485,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	              var groupId = result.id || null;
 	              _this15._addGroup(result, groupId, value, label);
 	            } else {
-	              _this15._addChoice(result[value], result[label], result.selected, result.disabled, undefined, result['customProperties']);
+	              _this15._addChoice(result[value], result[label], result.selected, result.disabled, undefined, result['customProperties'], null);
 	            }
 	          });
 	        } else {
@@ -1721,6 +1724,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	          // If we have a highlighted choice
 	          if (highlighted) {
+	            // add enter keyCode value
+	            activeItems[0].keyCode = enterKey;
 	            _this16._handleChoiceAction(activeItems, highlighted);
 	          }
 	        } else if (_this16.isSelectOneElement) {
@@ -2307,8 +2312,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var choiceId = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : -1;
 	      var groupId = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : -1;
 	      var customProperties = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
+	      var keyCode = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : null;
 
 	      var passedValue = (0, _utils.isType)('String', value) ? value.trim() : value;
+	      var passedKeyCode = keyCode;
 	      var items = this.store.getItems();
 	      var passedLabel = label || passedValue;
 	      var passedOptionId = parseInt(choiceId, 10) || -1;
@@ -2329,7 +2336,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        passedValue += this.config.appendValue.toString();
 	      }
 
-	      this.store.dispatch((0, _index3.addItem)(passedValue, passedLabel, id, passedOptionId, groupId, customProperties));
+	      this.store.dispatch((0, _index3.addItem)(passedValue, passedLabel, id, passedOptionId, groupId, customProperties, passedKeyCode));
 
 	      if (this.isSelectOneElement) {
 	        this.removeActiveItems(id);
@@ -2341,13 +2348,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	          id: id,
 	          value: passedValue,
 	          label: passedLabel,
-	          groupValue: group.value
+	          groupValue: group.value,
+	          keyCode: passedKeyCode
 	        });
 	      } else {
 	        (0, _utils.triggerEvent)(this.passedElement, 'addItem', {
 	          id: id,
 	          value: passedValue,
-	          label: passedLabel
+	          label: passedLabel,
+	          keyCode: passedKeyCode
 	        });
 	      }
 
@@ -2415,6 +2424,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var isDisabled = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
 	      var groupId = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : -1;
 	      var customProperties = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : null;
+	      var keyCode = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : null;
 
 	      if (typeof value === 'undefined' || value === null) {
 	        return;
@@ -2426,10 +2436,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var choiceId = choices ? choices.length + 1 : 1;
 	      var choiceElementId = this.baseId + '-' + this.idNames.itemChoice + '-' + choiceId;
 
-	      this.store.dispatch((0, _index3.addChoice)(value, choiceLabel, choiceId, groupId, isDisabled, choiceElementId, customProperties));
+	      this.store.dispatch((0, _index3.addChoice)(value, choiceLabel, choiceId, groupId, isDisabled, choiceElementId, customProperties, keyCode));
 
 	      if (isSelected) {
-	        this._addItem(value, choiceLabel, choiceId, undefined, customProperties);
+	        this._addItem(value, choiceLabel, choiceId, undefined, customProperties, keyCode);
 	      }
 	    }
 
@@ -2623,12 +2633,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // Hide passed input
 	      this.passedElement.classList.add(this.config.classNames.input, this.config.classNames.hiddenState);
 
+	      // Remove element from tab index
 	      this.passedElement.tabIndex = '-1';
+
 	      // Backup original styles if any
 	      var origStyle = this.passedElement.getAttribute('style');
+
 	      if (Boolean(origStyle)) {
 	        this.passedElement.setAttribute('data-choice-orig-style', origStyle);
 	      }
+
 	      this.passedElement.setAttribute('style', 'display:none;');
 	      this.passedElement.setAttribute('aria-hidden', 'true');
 	      this.passedElement.setAttribute('data-choice', 'active');
@@ -3936,33 +3950,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	var ActionTypes = exports.ActionTypes = {
 	  INIT: '@@redux/INIT'
+	};
 
-	  /**
-	   * Creates a Redux store that holds the state tree.
-	   * The only way to change the data in the store is to call `dispatch()` on it.
-	   *
-	   * There should only be a single store in your app. To specify how different
-	   * parts of the state tree respond to actions, you may combine several reducers
-	   * into a single reducer function by using `combineReducers`.
-	   *
-	   * @param {Function} reducer A function that returns the next state tree, given
-	   * the current state tree and the action to handle.
-	   *
-	   * @param {any} [preloadedState] The initial state. You may optionally specify it
-	   * to hydrate the state from the server in universal apps, or to restore a
-	   * previously serialized user session.
-	   * If you use `combineReducers` to produce the root reducer function, this must be
-	   * an object with the same shape as `combineReducers` keys.
-	   *
-	   * @param {Function} [enhancer] The store enhancer. You may optionally specify it
-	   * to enhance the store with third-party capabilities such as middleware,
-	   * time travel, persistence, etc. The only store enhancer that ships with Redux
-	   * is `applyMiddleware()`.
-	   *
-	   * @returns {Store} A Redux store that lets you read the state, dispatch actions
-	   * and subscribe to changes.
-	   */
-	};function createStore(reducer, preloadedState, enhancer) {
+	/**
+	 * Creates a Redux store that holds the state tree.
+	 * The only way to change the data in the store is to call `dispatch()` on it.
+	 *
+	 * There should only be a single store in your app. To specify how different
+	 * parts of the state tree respond to actions, you may combine several reducers
+	 * into a single reducer function by using `combineReducers`.
+	 *
+	 * @param {Function} reducer A function that returns the next state tree, given
+	 * the current state tree and the action to handle.
+	 *
+	 * @param {any} [preloadedState] The initial state. You may optionally specify it
+	 * to hydrate the state from the server in universal apps, or to restore a
+	 * previously serialized user session.
+	 * If you use `combineReducers` to produce the root reducer function, this must be
+	 * an object with the same shape as `combineReducers` keys.
+	 *
+	 * @param {Function} enhancer The store enhancer. You may optionally specify it
+	 * to enhance the store with third-party capabilities such as middleware,
+	 * time travel, persistence, etc. The only store enhancer that ships with Redux
+	 * is `applyMiddleware()`.
+	 *
+	 * @returns {Store} A Redux store that lets you read the state, dispatch actions
+	 * and subscribe to changes.
+	 */
+	function createStore(reducer, preloadedState, enhancer) {
 	  var _ref2;
 
 	  if (typeof preloadedState === 'function' && typeof enhancer === 'undefined') {
@@ -4096,8 +4111,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    var listeners = currentListeners = nextListeners;
 	    for (var i = 0; i < listeners.length; i++) {
-	      var listener = listeners[i];
-	      listener();
+	      listeners[i]();
 	    }
 
 	    return action;
@@ -4126,7 +4140,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	   * Interoperability point for observable/reactive libraries.
 	   * @returns {observable} A minimal observable of state changes.
 	   * For more information, see the observable proposal:
-	   * https://github.com/tc39/proposal-observable
+	   * https://github.com/zenparsing/es-observable
 	   */
 	  function observable() {
 	    var _ref;
@@ -4573,7 +4587,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var actionType = action && action.type;
 	  var actionName = actionType && '"' + actionType.toString() + '"' || 'an action';
 
-	  return 'Given action ' + actionName + ', reducer "' + key + '" returned undefined. ' + 'To ignore an action, you must explicitly return the previous state. ' + 'If you want this reducer to hold no value, you can return null instead of undefined.';
+	  return 'Given action ' + actionName + ', reducer "' + key + '" returned undefined. ' + 'To ignore an action, you must explicitly return the previous state.';
 	}
 
 	function getUnexpectedStateShapeWarningMessage(inputState, reducers, action, unexpectedKeyCache) {
@@ -4601,18 +4615,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	}
 
-	function assertReducerShape(reducers) {
+	function assertReducerSanity(reducers) {
 	  Object.keys(reducers).forEach(function (key) {
 	    var reducer = reducers[key];
 	    var initialState = reducer(undefined, { type: _createStore.ActionTypes.INIT });
 
 	    if (typeof initialState === 'undefined') {
-	      throw new Error('Reducer "' + key + '" returned undefined during initialization. ' + 'If the state passed to the reducer is undefined, you must ' + 'explicitly return the initial state. The initial state may ' + 'not be undefined. If you don\'t want to set a value for this reducer, ' + 'you can use null instead of undefined.');
+	      throw new Error('Reducer "' + key + '" returned undefined during initialization. ' + 'If the state passed to the reducer is undefined, you must ' + 'explicitly return the initial state. The initial state may ' + 'not be undefined.');
 	    }
 
 	    var type = '@@redux/PROBE_UNKNOWN_ACTION_' + Math.random().toString(36).substring(7).split('').join('.');
 	    if (typeof reducer(undefined, { type: type }) === 'undefined') {
-	      throw new Error('Reducer "' + key + '" returned undefined when probed with a random type. ' + ('Don\'t try to handle ' + _createStore.ActionTypes.INIT + ' or other actions in "redux/*" ') + 'namespace. They are considered private. Instead, you must return the ' + 'current state for any unknown actions, unless it is undefined, ' + 'in which case you must return the initial state, regardless of the ' + 'action type. The initial state may not be undefined, but can be null.');
+	      throw new Error('Reducer "' + key + '" returned undefined when probed with a random type. ' + ('Don\'t try to handle ' + _createStore.ActionTypes.INIT + ' or other actions in "redux/*" ') + 'namespace. They are considered private. Instead, you must return the ' + 'current state for any unknown actions, unless it is undefined, ' + 'in which case you must return the initial state, regardless of the ' + 'action type. The initial state may not be undefined.');
 	    }
 	  });
 	}
@@ -4651,24 +4665,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	  var finalReducerKeys = Object.keys(finalReducers);
 
-	  var unexpectedKeyCache = void 0;
 	  if (false) {
-	    unexpectedKeyCache = {};
+	    var unexpectedKeyCache = {};
 	  }
 
-	  var shapeAssertionError = void 0;
+	  var sanityError;
 	  try {
-	    assertReducerShape(finalReducers);
+	    assertReducerSanity(finalReducers);
 	  } catch (e) {
-	    shapeAssertionError = e;
+	    sanityError = e;
 	  }
 
 	  return function combination() {
-	    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+	    var state = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 	    var action = arguments[1];
 
-	    if (shapeAssertionError) {
-	      throw shapeAssertionError;
+	    if (sanityError) {
+	      throw sanityError;
 	    }
 
 	    if (false) {
@@ -4680,16 +4693,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    var hasChanged = false;
 	    var nextState = {};
-	    for (var _i = 0; _i < finalReducerKeys.length; _i++) {
-	      var _key = finalReducerKeys[_i];
-	      var reducer = finalReducers[_key];
-	      var previousStateForKey = state[_key];
+	    for (var i = 0; i < finalReducerKeys.length; i++) {
+	      var key = finalReducerKeys[i];
+	      var reducer = finalReducers[key];
+	      var previousStateForKey = state[key];
 	      var nextStateForKey = reducer(previousStateForKey, action);
 	      if (typeof nextStateForKey === 'undefined') {
-	        var errorMessage = getUndefinedStateErrorMessage(_key, action);
+	        var errorMessage = getUndefinedStateErrorMessage(key, action);
 	        throw new Error(errorMessage);
 	      }
-	      nextState[_key] = nextStateForKey;
+	      nextState[key] = nextStateForKey;
 	      hasChanged = hasChanged || nextStateForKey !== previousStateForKey;
 	    }
 	    return hasChanged ? nextState : state;
@@ -4879,11 +4892,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return funcs[0];
 	  }
 
-	  return funcs.reduce(function (a, b) {
-	    return function () {
-	      return a(b.apply(undefined, arguments));
-	    };
-	  });
+	  var last = funcs[funcs.length - 1];
+	  var rest = funcs.slice(0, -1);
+	  return function () {
+	    return rest.reduceRight(function (composed, f) {
+	      return f(composed);
+	    }, last.apply(undefined, arguments));
+	  };
 	}
 
 /***/ }),
@@ -4961,7 +4976,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	          label: action.label,
 	          active: true,
 	          highlighted: false,
-	          customProperties: action.customProperties
+	          customProperties: action.customProperties,
+	          keyCode: null
 	        }]);
 
 	        return newState.map(function (item) {
@@ -5077,7 +5093,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	          selected: false,
 	          active: true,
 	          score: 9999,
-	          customProperties: action.customProperties
+	          customProperties: action.customProperties,
+	          keyCode: null
 	        }]);
 	      }
 
@@ -5174,7 +5191,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	var addItem = exports.addItem = function addItem(value, label, id, choiceId, groupId, customProperties) {
+	var addItem = exports.addItem = function addItem(value, label, id, choiceId, groupId, customProperties, keyCode) {
 	  return {
 	    type: 'ADD_ITEM',
 	    value: value,
@@ -5182,7 +5199,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    id: id,
 	    choiceId: choiceId,
 	    groupId: groupId,
-	    customProperties: customProperties
+	    customProperties: customProperties,
+	    keyCode: keyCode
 	  };
 	};
 
@@ -5202,7 +5220,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	};
 
-	var addChoice = exports.addChoice = function addChoice(value, label, id, groupId, disabled, elementId, customProperties) {
+	var addChoice = exports.addChoice = function addChoice(value, label, id, groupId, disabled, elementId, customProperties, keyCode) {
 	  return {
 	    type: 'ADD_CHOICE',
 	    value: value,
@@ -5211,7 +5229,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    groupId: groupId,
 	    disabled: disabled,
 	    elementId: elementId,
-	    customProperties: customProperties
+	    customProperties: customProperties,
+	    keyCode: keyCode
 	  };
 	};
 

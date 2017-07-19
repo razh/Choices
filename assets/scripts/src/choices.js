@@ -130,7 +130,9 @@ class Choices {
 
     if (this.config.renderSelectedChoices !== 'auto' && this.config.renderSelectedChoices !== 'always') {
       if (!this.config.silent) {
-        console.warn('renderSelectedChoices: Possible values are \'auto\' and \'always\'. Falling back to \'auto\'.');
+        console.warn(
+          'renderSelectedChoices: Possible values are \'auto\' and \'always\'. Falling back to \'auto\'.'
+        );
       }
       this.config.renderSelectedChoices = 'auto';
     }
@@ -186,10 +188,7 @@ class Choices {
     this.baseId = generateId(this.passedElement, 'choices-');
 
     // Bind methods
-    this.init = this.init.bind(this);
     this.render = this.render.bind(this);
-    this.destroy = this.destroy.bind(this);
-    this.disable = this.disable.bind(this);
 
     // Bind event handlers
     this._onFocus = this._onFocus.bind(this);
@@ -406,8 +405,10 @@ class Choices {
     if (this.isTextElement) {
       // Simplify store data to just values
       const itemsFiltered = this.store.getItemsReducedToValues(items);
-      // Assign hidden input array of values
-      this.passedElement.setAttribute('value', itemsFiltered.join(this.config.delimiter));
+      const itemsFilteredString = itemsFiltered.join(this.config.delimiter);
+      // Update the value of the hidden input
+      this.passedElement.setAttribute('value', itemsFilteredString);
+      this.passedElement.value = itemsFilteredString;
     } else {
       const selectedOptionsFragment = document.createDocumentFragment();
 
@@ -547,7 +548,9 @@ class Choices {
     const groupId = item.groupId;
     const group = groupId >= 0 ? this.store.getGroupById(groupId) : null;
 
-    this.store.dispatch(highlightItem(id, true));
+    this.store.dispatch(
+      highlightItem(id, true)
+    );
 
     if (runEvent) {
       if (group && group.value) {
@@ -584,7 +587,9 @@ class Choices {
     const groupId = item.groupId;
     const group = groupId >= 0 ? this.store.getGroupById(groupId) : null;
 
-    this.store.dispatch(highlightItem(id, false));
+    this.store.dispatch(
+      highlightItem(id, false)
+    );
 
     if (group && group.value) {
       triggerEvent(this.passedElement, 'unhighlightItem', {
@@ -838,7 +843,8 @@ class Choices {
                 true,
                 false,
                 -1,
-                item.customProperties
+                item.customProperties,
+                null
               );
             } else {
               this._addItem(
@@ -846,7 +852,8 @@ class Choices {
                 item.label,
                 item.id,
                 undefined,
-                item.customProperties
+                item.customProperties,
+                null
               );
             }
           } else if (itemType === 'String') {
@@ -856,7 +863,8 @@ class Choices {
                 item,
                 true,
                 false,
-                -1
+                -1,
+                null
               );
             } else {
               this._addItem(item);
@@ -901,7 +909,8 @@ class Choices {
               foundChoice.label,
               foundChoice.id,
               foundChoice.groupId,
-              foundChoice.customProperties
+              foundChoice.customProperties,
+              foundChoice.keyCode
             );
           } else if (!this.config.silent) {
             console.warn('Attempting to select choice already selected');
@@ -951,7 +960,8 @@ class Choices {
                 result.selected,
                 result.disabled,
                 undefined,
-                result['customProperties']
+                result['customProperties'],
+                null
               );
             }
           });
@@ -968,7 +978,9 @@ class Choices {
    * @public
    */
   clearStore() {
-    this.store.dispatch(clearAll());
+    this.store.dispatch(
+      clearAll()
+    );
     return this;
   }
 
@@ -986,7 +998,9 @@ class Choices {
     }
     if (!this.isTextElement && this.config.searchEnabled) {
       this.isSearching = false;
-      this.store.dispatch(activateChoices(true));
+      this.store.dispatch(
+        activateChoices(true)
+      );
     }
     return this;
   }
@@ -1158,7 +1172,11 @@ class Choices {
     // If we are clicking on an option
     const id = element.getAttribute('data-id');
     const choice = this.store.getChoiceById(id);
+    const passedKeyCode  = activeItems[0].keyCode !== null ? activeItems[0].keyCode : null
     const hasActiveDropdown = this.dropdown.classList.contains(this.config.classNames.activeState);
+
+    // Update choice keyCode
+    choice.keyCode = passedKeyCode
 
     triggerEvent(this.passedElement, 'choice', {
       choice,
@@ -1173,7 +1191,8 @@ class Choices {
           choice.label,
           choice.id,
           choice.groupId,
-          choice.customProperties
+          choice.customProperties,
+          choice.keyCode
         );
         this._triggerChange(choice.value);
       }
@@ -1346,7 +1365,8 @@ class Choices {
               result.selected,
               result.disabled,
               undefined,
-              result['customProperties']
+              result['customProperties'],
+              null
             );
           }
         });
@@ -1381,7 +1401,9 @@ class Choices {
       this.currentValue = newValue;
       this.highlightPosition = 0;
       this.isSearching = true;
-      this.store.dispatch(filterChoices(results));
+      this.store.dispatch(
+        filterChoices(results)
+      );
     }
   }
 
@@ -1415,7 +1437,9 @@ class Choices {
       } else if (hasUnactiveChoices) {
         // Otherwise reset choices to active
         this.isSearching = false;
-        this.store.dispatch(activateChoices(true));
+        this.store.dispatch(
+          activateChoices(true)
+        );
       }
     }
   }
@@ -1565,6 +1589,8 @@ class Choices {
 
         // If we have a highlighted choice
         if (highlighted) {
+          // add enter keyCode value
+          activeItems[0].keyCode = enterKey
           this._handleChoiceAction(activeItems, highlighted);
         }
 
@@ -1700,7 +1726,9 @@ class Choices {
         // ...and it is a multiple select input, activate choices (if searching)
         if (!this.isTextElement && this.isSearching) {
           this.isSearching = false;
-          this.store.dispatch(activateChoices(true));
+          this.store.dispatch(
+            activateChoices(true)
+          );
         }
       } else if (this.canSearch && canAddItem.response) {
         this._handleSearch(this.input.value);
@@ -2102,8 +2130,9 @@ class Choices {
    * @return {Object} Class instance
    * @public
    */
-  _addItem(value, label = null, choiceId = -1, groupId = -1, customProperties = null) {
+  _addItem(value, label = null, choiceId = -1, groupId = -1, customProperties = null, keyCode = null) {
     let passedValue = isType('String', value) ? value.trim() : value;
+    let passedKeyCode = keyCode
     const items = this.store.getItems();
     const passedLabel = label || passedValue;
     const passedOptionId = parseInt(choiceId, 10) || -1;
@@ -2124,7 +2153,17 @@ class Choices {
       passedValue += this.config.appendValue.toString();
     }
 
-    this.store.dispatch(addItem(passedValue, passedLabel, id, passedOptionId, groupId, customProperties));
+    this.store.dispatch(
+      addItem(
+        passedValue,
+        passedLabel,
+        id,
+        passedOptionId,
+        groupId,
+        customProperties,
+        passedKeyCode
+      )
+    );
 
     if (this.isSelectOneElement) {
       this.removeActiveItems(id);
@@ -2137,12 +2176,14 @@ class Choices {
         value: passedValue,
         label: passedLabel,
         groupValue: group.value,
+        keyCode: passedKeyCode
       });
     } else {
       triggerEvent(this.passedElement, 'addItem', {
         id,
         value: passedValue,
         label: passedLabel,
+        keyCode: passedKeyCode
       });
     }
 
@@ -2167,7 +2208,9 @@ class Choices {
     const groupId = item.groupId;
     const group = groupId >= 0 ? this.store.getGroupById(groupId) : null;
 
-    this.store.dispatch(removeItem(id, choiceId));
+    this.store.dispatch(
+      removeItem(id, choiceId)
+    );
 
     if (group && group.value) {
       triggerEvent(this.passedElement, 'removeItem', {
@@ -2198,7 +2241,7 @@ class Choices {
    * @return
    * @private
    */
-  _addChoice(value, label = null, isSelected = false, isDisabled = false, groupId = -1, customProperties = null) {
+  _addChoice(value, label = null, isSelected = false, isDisabled = false, groupId = -1, customProperties = null, keyCode = null) {
     if (typeof value === 'undefined' || value === null) {
       return;
     }
@@ -2209,15 +2252,18 @@ class Choices {
     const choiceId = choices ? choices.length + 1 : 1;
     const choiceElementId = `${this.baseId}-${this.idNames.itemChoice}-${choiceId}`;
 
-    this.store.dispatch(addChoice(
-      value,
-      choiceLabel,
-      choiceId,
-      groupId,
-      isDisabled,
-      choiceElementId,
-      customProperties
-    ));
+    this.store.dispatch(
+      addChoice(
+        value,
+        choiceLabel,
+        choiceId,
+        groupId,
+        isDisabled,
+        choiceElementId,
+        customProperties,
+        keyCode
+      )
+    );
 
     if (isSelected) {
       this._addItem(
@@ -2225,7 +2271,8 @@ class Choices {
         choiceLabel,
         choiceId,
         undefined,
-        customProperties
+        customProperties,
+        keyCode
       );
     }
   }
@@ -2236,7 +2283,9 @@ class Choices {
    * @private
    */
   _clearChoices() {
-    this.store.dispatch(clearChoices());
+    this.store.dispatch(
+      clearChoices()
+    );
   }
 
   /**
@@ -2254,12 +2303,14 @@ class Choices {
     const isDisabled = group.disabled ? group.disabled : false;
 
     if (groupChoices) {
-      this.store.dispatch(addGroup(
-        group.label,
-        groupId,
-        true,
-        isDisabled
-      ));
+      this.store.dispatch(
+        addGroup(
+          group.label,
+          groupId,
+          true,
+          isDisabled
+        )
+      );
 
       groupChoices.forEach((option) => {
         const isOptDisabled = option.disabled ||
@@ -2278,12 +2329,14 @@ class Choices {
         );
       });
     } else {
-      this.store.dispatch(addGroup(
-        group.label,
-        group.id,
-        false,
-        group.disabled
-      ));
+      this.store.dispatch(
+        addGroup(
+          group.label,
+          group.id,
+          false,
+          group.disabled
+        )
+      );
     }
   }
 
@@ -2583,12 +2636,16 @@ class Choices {
       this.config.classNames.hiddenState
     );
 
+    // Remove element from tab index
     this.passedElement.tabIndex = '-1';
+
     // Backup original styles if any
     const origStyle = this.passedElement.getAttribute('style');
+
     if (Boolean(origStyle)) {
       this.passedElement.setAttribute('data-choice-orig-style', origStyle);
     }
+
     this.passedElement.setAttribute('style', 'display:none;');
     this.passedElement.setAttribute('aria-hidden', 'true');
     this.passedElement.setAttribute('data-choice', 'active');
